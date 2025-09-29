@@ -1,0 +1,41 @@
+name: Build and Push Images
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+env:
+  DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
+  IMAGE_NAME: chatapi
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Create .env file
+        run: |
+          echo "DOCKER_REGISTRY=${{ env.DOCKER_REGISTRY }}/" >> .env
+          echo "IMAGE_TAG=latest" >> .env
+          echo "DB_PASSWORD=dummy_password_for_build" >> .env
+          # Add other variables from .env.example if needed for build
+          cp .env.example .env.temp
+          cat .env >> .env.temp
+          mv .env.temp .env
+        
+      - name: Build images with Docker Compose
+        run: docker-compose -f docker-compose.yml -f docker-compose.override.yml build
+
+      - name: Push chatapi image to Docker Hub
+        run: docker-compose push chatapi
