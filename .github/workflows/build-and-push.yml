@@ -5,11 +5,8 @@ on:
     branches:
       - main
       - develop
+      - master
   workflow_dispatch:
-
-env:
-  DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
-  IMAGE_NAME: chatapi
 
 jobs:
   build-and-push:
@@ -24,18 +21,23 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Create .env file
-        run: |
-          echo "DOCKER_REGISTRY=${{ env.DOCKER_REGISTRY }}/" >> .env
-          echo "IMAGE_TAG=latest" >> .env
-          echo "DB_PASSWORD=dummy_password_for_build" >> .env
-          # Add other variables from .env.example if needed for build
-          cp .env.example .env.temp
-          cat .env >> .env.temp
-          mv .env.temp .env
-        
       - name: Build images with Docker Compose
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+          JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
+          DB_SERVER: ${{ secrets.DB_SERVER }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
+          IMAGE_TAG: latest
         run: docker-compose -f docker-compose.yml -f docker-compose.override.yml build
+       
 
-      - name: Push chatapi image to Docker Hub
-        run: docker-compose push chatapi
+      - name: Push images to Docker Hub
+        run: docker-compose -f docker-compose.yml -f docker-compose.override.yml push
+        env:
+          DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
+          IMAGE_TAG: latest
