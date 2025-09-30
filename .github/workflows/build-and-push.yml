@@ -11,6 +11,17 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+      JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
+      DB_SERVER: ${{ secrets.DB_SERVER }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
+      IMAGE_TAG: latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,22 +33,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build images with Docker Compose
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
-          JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
-          DB_SERVER: ${{ secrets.DB_SERVER }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
-          IMAGE_TAG: latest
         run: docker compose -f docker-compose.yml -f docker-compose.override.yml build
        
-
       - name: Push images to Docker Hub
         run: docker compose -f docker-compose.yml -f docker-compose.override.yml push
-        env:
-          DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
-          IMAGE_TAG: latest
