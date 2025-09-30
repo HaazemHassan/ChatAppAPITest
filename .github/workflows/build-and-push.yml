@@ -20,7 +20,7 @@ jobs:
       DB_NAME: ${{ secrets.DB_NAME }}
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}/
       IMAGE_TAG: latest
     steps:
       - name: Checkout repository
@@ -34,6 +34,9 @@ jobs:
 
       - name: Build images with Docker Compose
         run: docker compose -f docker-compose.yml -f docker-compose.override.yml build
+
+      - name: List Docker Images
+        run: docker images
        
       - name: Push images to Docker Hub
         run: docker compose -f docker-compose.yml -f docker-compose.override.yml push
